@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Restaurant</string>
+    <string name="search">Search</string>
+    <string name="favorites">Favourites</string>
+    <string name="header">1cc5f7df7bf1425e718a4ca9c504cada</string>
+    <string name="msg_location_empty">location is null</string>
+    <string name="google_maps_key">AIzaSyBCbTKAhr6-2tfQDtVLbd40GvKLeedJn7Q</string>
+    <string name="restaurant">Restaurants</string>
+    <string name="enable_gps">Enable GPS</string>
+    <string name="required_for_this_app">Required for this app</string>
+    <string name="enable_now">Enable Now</string>
+    <string name="location_permission_not_granted">Location Permission not granted</string>
+    <string name="pref_key_transition_time" translatable="false">pref_key_transition_time</string>
+
+
+
+</resources>

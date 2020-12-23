@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+
+            name="viewmodel"
+            type="com.zomato.view.fragment.viewmodel.MainActivityViewModel" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/restaurant"
+                android:textColor="@color/Home"
+                android:textSize="32dp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/ivMap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/green_bg"
+                android:src="@drawable/map" />
+        </RelativeLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSearch"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@drawable/ic_baseline_location_searching_24"
+            android:drawablePadding="20dp"
+            android:gravity="left|center_vertical"
+            android:text="Search Location"
+            android:textColor="@android:color/darker_gray" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCuisin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvSearch"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewmodel.progressVisibility ? View.VISIBLE : View.GONE}">
+
+            <include layout="@layout/shimmer_view_chip" />
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <com.facebook.shimmer.ShimmerFrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="@{viewmodel.progressVisibility ? View.VISIBLE : View.GONE}">
+
+            <include layout="@layout/shimmer_view" />
+
+        </com.facebook.shimmer.ShimmerFrameLayout>
+
+        <FrameLayout
+            android:id="@+id/frm_contain"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+</layout>
