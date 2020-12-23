@@ -74,49 +74,61 @@ class MapFragment() : Fragment(),
             viewModel.longitude = bundle.getDouble(EXTRA_KEY_LNG_MAP, 0.0)
 
         }
+        if (viewModel.latitude == 0.0 && viewModel.longitude == 0.0) {
 
-        viewModel.data.observe(requireActivity(), Observer {
-            if (it.isSuccessful) {
-                if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-                    /*val restaurantList: List<RestaurantModel.NearbyRestaurant> =
-                        it.body()!!.nearbyRestaurants!!*/
-                    for (i in it.body()!!.nearbyRestaurants!!.indices) {
-                        val lat =
-                            it.body()!!.nearbyRestaurants!![i].restaurant!!.location!!.latitude!!.toDouble()
-                        val lng =
-                            it.body()!!.nearbyRestaurants!![i].restaurant!!.location!!.longitude!!.toDouble()
-                        val latLng = LatLng(lat, lng)
-                        latlngs.add(latLng)
+        } else {
+
+
+            viewModel.data.observe(requireActivity(), Observer {
+                if (it.isSuccessful) {
+                    if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
+                        /*val restaurantList: List<RestaurantModel.NearbyRestaurant> =
+                            it.body()!!.nearbyRestaurants!!*/
+                        for (i in it.body()!!.nearbyRestaurants!!.indices) {
+                            val lat =
+                                it.body()!!.nearbyRestaurants!![i].restaurant!!.location!!.latitude!!.toDouble()
+                            val lng =
+                                it.body()!!.nearbyRestaurants!![i].restaurant!!.location!!.longitude!!.toDouble()
+                            val latLng = LatLng(lat, lng)
+                            latlngs.add(latLng)
+                        }
+                        for (point in latlngs) {
+                            options.position(point!!)
+                            options.title("someTitle")
+                            options.snippet("someDesc")
+                            map.addMarker(options)
+                        }
+
+                        restaurantList = it.body()!!.nearbyRestaurants!!
+                        //   adapter = RestaurantAdapter(restaurantList, this)
+                        manager =
+                            LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+                        binding.itemPicker.setOrientation(DSVOrientation.HORIZONTAL)
+                        binding.itemPicker.addOnItemChangedListener(this)
+                        infiniteAdapter =
+                            InfiniteScrollAdapter.wrap(
+                                RestaurantAdapter(
+                                    viewModel,
+                                    restaurantList,
+                                    this
+                                )
+                            )
+                        binding.itemPicker.setAdapter(infiniteAdapter)
+                        binding.itemPicker.setItemTransitionTimeMillis(DiscreteScrollViewOptions.getTransitionTime())
+                        binding.itemPicker.setItemTransformer(
+                            ScaleTransformer.Builder()
+                                .setMinScale(0.8f)
+                                .build()
+                        )
+                        onItemChanged(restaurantList.get(0));
+                        //  binding.rvHorizontal.adapter = adapter
+                        //  binding.rvHorizontal.layoutManager = manager
+
                     }
-                    for (point in latlngs) {
-                        options.position(point!!)
-                        options.title("someTitle")
-                        options.snippet("someDesc")
-                        map.addMarker(options)
-                    }
-
-                    restaurantList = it.body()!!.nearbyRestaurants!!
-                 //   adapter = RestaurantAdapter(restaurantList, this)
-                    manager = LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-                    binding.itemPicker.setOrientation(DSVOrientation.HORIZONTAL)
-                    binding.itemPicker.addOnItemChangedListener(this)
-                    infiniteAdapter =
-                        InfiniteScrollAdapter.wrap(RestaurantAdapter(viewModel,restaurantList, this))
-                    binding.itemPicker.setAdapter(infiniteAdapter)
-                    binding.itemPicker.setItemTransitionTimeMillis(DiscreteScrollViewOptions.getTransitionTime())
-                    binding.itemPicker.setItemTransformer(
-                        ScaleTransformer.Builder()
-                            .setMinScale(0.8f)
-                            .build()
-                    )
-                    onItemChanged(restaurantList.get(0));
-                    //  binding.rvHorizontal.adapter = adapter
-                    //  binding.rvHorizontal.layoutManager = manager
-
                 }
-            }
 
-        })
+            })
+        }
         /*  binding.rvHorizontal.addOnScrollListener(object : RecyclerView.OnScrollListener() {
               override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                   super.onScrolled(recyclerView, dx, dy)

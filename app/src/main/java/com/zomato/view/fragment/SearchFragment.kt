@@ -43,6 +43,8 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
     private var cuisinList: ArrayList<String> = ArrayList()
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
+    private var flag: Int = 0
+    private var isPlaceSelected: Int = 0
     private lateinit var binding: FragmentSearchBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var adapter: RestaurantAdapter
@@ -72,39 +74,51 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
             startActivityForResult(intent, 101)
         }
         binding.ivMap.setOnClickListener {
-            binding.rvSearch.visibility = View.GONE
 
-            val bundle = Bundle()
-            bundle.putDouble(EXTRA_KEY_LAT_MAP, viewModel.latitude)
-            bundle.putDouble(EXTRA_KEY_LNG_MAP, viewModel.longitude)
+            if (flag == 1) {
+                flag = 0
+                binding.ivMap.setImageResource(R.drawable.map)
+                binding.rvSearch.visibility = View.VISIBLE
+                var searchFragment: SearchFragment = SearchFragment()
+                binding.ivMap.setImageResource(R.drawable.map)
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.frm_contain, searchFragment).addToBackStack("tag")
+                    .commit()
 
-            var mapFragment: MapFragment = MapFragment()
-            mapFragment.setArguments(bundle)
-            childFragmentManager.beginTransaction()
-                .replace(R.id.frm_contain, mapFragment)
-                .commit()
+            } else {
 
+                val bundle = Bundle()
+                binding.rvSearch.visibility = View.GONE
+                if (isPlaceSelected == 1) {
+                    bundle.putDouble(EXTRA_KEY_LAT_MAP, viewModel.latitude)
+                    bundle.putDouble(EXTRA_KEY_LNG_MAP, viewModel.longitude)
+                }else{
 
-        }
-        /* viewModel.data.observe(requireActivity(), Observer {
-             if (it.isSuccessful) {
-                 if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-                     *//*val restaurantList: List<RestaurantModel.NearbyRestaurant> =
-                        it.body()!!.nearbyRestaurants!!*//*
-                    restaurantList = it.body()!!.nearbyRestaurants!!
-                    adapter = RestaurantAdapter(restaurantList, this)
-                    manager = LinearLayoutManager(activity)
-                    binding.rvSearch.adapter = adapter
-                    binding.rvSearch.layoutManager = manager
+                    bundle.putDouble(EXTRA_KEY_LAT_MAP, 0.0)
+                    bundle.putDouble(EXTRA_KEY_LNG_MAP,0.0)
                 }
+
+
+                var mapFragment: MapFragment = MapFragment()
+
+                mapFragment.setArguments(bundle)
+                flag = 1
+                binding.ivMap.setImageResource(R.drawable.menu)
+                childFragmentManager.beginTransaction()
+                    .replace(R.id.frm_contain, mapFragment).addToBackStack("tag")
+                    .commit()
+
+
             }
 
-        })*/
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 101) {
+            isPlaceSelected = 1
             /* binding.rvSearch.visibility = View.VISIBLE
              binding.frmContain.visibility = View.GONE*/
             if (data!!.getBooleanExtra(EXTRA_KEY_CHOOSE_CURRENT, false)) {
@@ -277,6 +291,7 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
 
 //        initRestaurant(restaurantList)
     }
+
 
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {
         super.setUserVisibleHint(isVisibleToUser)
