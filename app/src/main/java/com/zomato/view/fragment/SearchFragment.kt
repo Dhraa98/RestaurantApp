@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -79,6 +80,7 @@ class SearchFragment : Fragment() {
             cuisinList.clear()
             val intent = Intent(activity, SearchPlaceActivity::class.java)
             startActivityForResult(intent, 101)
+
         }
         binding.ivMap.setOnClickListener {
 
@@ -131,33 +133,42 @@ class SearchFragment : Fragment() {
             /* binding.rvSearch.visibility = View.VISIBLE
              binding.frmContain.visibility = View.GONE*/
             if (data != null) {
-                binding.btnSearch.text = data.getStringExtra(EXTRA_NAME)
+
                 if (data!!.getBooleanExtra(EXTRA_KEY_CHOOSE_CURRENT, false)) {
                     viewModel.latitude = latitude
                     viewModel.longitude = longitude
+                    viewModel.setAddress( viewModel.latitude, viewModel.longitude)
+                    binding.btnSearch.text = viewModel.searchText.value.toString()
+
                 } else {
                     viewModel.latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
                     viewModel.longitude = data!!.getDoubleExtra(EXTRA_KEY_LNG, 0.0)
                     latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
                     longitude = data!!.getDoubleExtra(EXTRA_KEY_LNG, 0.0)
+                    binding.btnSearch.text = data.getStringExtra(EXTRA_NAME)
+
                 }
                 viewModel.progressVisibility.value = true
-                viewModel.data.observe(requireActivity(), Observer {
-                    viewModel.progressVisibility.value = false
-                    binding.rvCuisin.visibility = View.VISIBLE
-                    binding.rvSearch.visibility = View.VISIBLE
-                    if (it.isSuccessful) {
-                        if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
+                viewModel.getRestaurant().observe(this, Observer {
 
-                            restaurantList = it.body()!!.nearbyRestaurants!!
+                        // your code here ...
 
-                            for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
-                                cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
+                        viewModel.progressVisibility.value = false
+                        binding.rvCuisin.visibility = View.VISIBLE
+                        binding.rvSearch.visibility = View.VISIBLE
+                        if (it.isSuccessful) {
+                            if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
+
+                                restaurantList = it.body()!!.nearbyRestaurants!!
+
+                                for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
+                                    cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
+                                }
+                                initRestaurant(restaurantList)
+                                initCuisine(restaurantList)
                             }
-                            initRestaurant(restaurantList)
-                            initCuisine(restaurantList)
                         }
-                    }
+
 
 
                 })
@@ -207,6 +218,7 @@ class SearchFragment : Fragment() {
                     restaurantList[position].restaurant!!.averageCostForTwo.toString()
                 todoEntity.imagePath =
                     restaurantList[position].restaurant!!.featuredImage.toString()
+                todoEntity.textBack= restaurantList[position].restaurant!!.userRating!!.ratingColor.toString()
                 TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
             } else {
 
@@ -323,31 +335,6 @@ class SearchFragment : Fragment() {
         )
     }
 
-
-    /*  override fun onResume() {
-          super.onResume()
-
-          if (!isFirstTime) {
-              viewModel.latitude = latitude
-              viewModel.longitude = longitude
-              viewModel.data.observe(requireActivity(), Observer {
-                  if (it.isSuccessful) {
-                      if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-
-                          restaurantList = it.body()!!.nearbyRestaurants!!
-
-                          for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
-                              cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
-                          }
-                          initRestaurant(restaurantList)
-                          initCuisine(restaurantList)
-                      }
-                  }
-
-              })
-          }
-         isFirstTime = false
-      }*/
 
 
 }

@@ -28,6 +28,9 @@ class TodoEntity {
     @ColumnInfo(name = "imagePath")
     var imagePath : String=""
 
+    @ColumnInfo(name = "textBack")
+    var textBack : String=""
+
 
 
 

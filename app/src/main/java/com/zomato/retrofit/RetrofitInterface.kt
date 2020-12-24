@@ -5,6 +5,7 @@ import android.util.Base64.DEFAULT
 import android.util.Base64.encodeToString
 import com.zomato.R
 import com.zomato.retrofit.RestaurantModel
+import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -24,6 +25,13 @@ interface RetrofitInterface {
         @Query("lat") lat: Double,
         @Query("lon") lon: Double
     ): Response<RestaurantModel>
+
+   /* @GET("geocode")
+     fun getPlacesApi(
+        @Header("user-key") headers: String,
+        @Query("lat") lat: Double,
+        @Query("lon") lon: Double
+    ): Call<RestaurantModel>*/
 
 
 }

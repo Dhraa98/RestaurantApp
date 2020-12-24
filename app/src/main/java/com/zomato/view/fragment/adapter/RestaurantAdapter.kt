@@ -9,9 +9,9 @@ import com.zomato.retrofit.RestaurantModel
 import com.zomato.view.fragment.viewmodel.MainActivityViewModel
 
 class RestaurantAdapter(
-    var viewMode : MainActivityViewModel,
+    var viewMode: MainActivityViewModel,
     var restaurantList: List<RestaurantModel.NearbyRestaurant>,
-    var callback : (Int , Boolean) ->Unit
+    var callback: (Int, Boolean) -> Unit
 
 ) :
     RecyclerView.Adapter<RestaurantAdapter.ViewHolder>() {
@@ -51,14 +51,14 @@ class RestaurantAdapter(
         holder.Bind(viewMode, restaurantList[position])
 
         holder.binding.ivFav.setOnClickListener {
-            if (holder.binding.ivFav.isSelected){
+            if (holder.binding.ivFav.isSelected) {
                 holder.binding.ivFav.setImageResource(R.drawable.ic_baseline_favorite_border_24)
                 holder.binding.ivFav.isSelected = false
-                callback(holder.adapterPosition,false)
-            }else{
-                holder.binding.ivFav.setImageResource(R.drawable.ic_baseline_favorite_24)
+                callback(holder.adapterPosition, false)
+            } else {
+                holder.binding.ivFav.setImageResource(R.drawable.favorite_24)
                 holder.binding.ivFav.isSelected = true
-                callback(holder.adapterPosition,true)
+                callback(holder.adapterPosition, true)
             }
         }
 

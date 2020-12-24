@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,8 +28,11 @@ import com.yarolegovich.discretescrollview.DiscreteScrollView
 import com.yarolegovich.discretescrollview.InfiniteScrollAdapter
 import com.yarolegovich.discretescrollview.transform.ScaleTransformer
 import com.zomato.R
+import com.zomato.database.TodoEntity
+import com.zomato.database.TodoRoomDatabase
 import com.zomato.databinding.FragmetMapBinding
 import com.zomato.retrofit.RestaurantModel
+import com.zomato.utils.BindingAdapter
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG_MAP
 import com.zomato.utils.DiscreteScrollViewOptions
@@ -41,6 +45,7 @@ class MapFragment() : Fragment(),
     DiscreteScrollView.OnItemChangedListener<RestaurantAdapter.ViewHolder> {
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
+    private var flag: Int = 0
     private lateinit var map: GoogleMap
     private lateinit var binding: FragmetMapBinding
     private lateinit var viewModel: MainActivityViewModel
@@ -78,11 +83,14 @@ class MapFragment() : Fragment(),
 
         } else {
 
-
-            viewModel.data.observe(requireActivity(), Observer {
+            viewModel.progressVisibility.value = true
+            viewModel.getRestaurant()!!.observe(requireActivity(), Observer {
                 if (it.isSuccessful) {
+                    viewModel.progressVisibility.value = false
+                    binding.itemPicker.visibility=View.VISIBLE
                     if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-                        /*val restaurantList: List<RestaurantModel.NearbyRestaurant> =
+                        flag=1
+                       /*  restaurantList =
                             it.body()!!.nearbyRestaurants!!*/
                         for (i in it.body()!!.nearbyRestaurants!!.indices) {
                             val lat =
@@ -110,7 +118,38 @@ class MapFragment() : Fragment(),
                                 RestaurantAdapter(
                                     viewModel,
                                     restaurantList,
-                                    { position,Bool->
+                                    { position, Bool ->
+                                        if (Bool) {
+                                            var todoEntity = TodoEntity()
+                                            todoEntity.avgRating =
+                                                restaurantList[position].restaurant!!.userRating!!.aggregateRating.toString()
+                                            todoEntity.cuisin = restaurantList[position].restaurant!!.cuisines.toString()
+                                            todoEntity.listingName = restaurantList[position].restaurant!!.name.toString()
+                                            todoEntity.minPrice =
+                                                restaurantList[position].restaurant!!.averageCostForTwo.toString()
+                                            todoEntity.imagePath =
+                                                restaurantList[position].restaurant!!.featuredImage.toString()
+                                            todoEntity.textBack= restaurantList[position].restaurant!!.userRating!!.ratingColor.toString()
+                                            TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
+                                        } else {
+
+                                            BindingAdapter.dataList.clear()
+                                            TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
+                                            {
+                                                BindingAdapter.dataList.addAll(listOf(it))
+                                                Log.i("Fetch Records", "Id:  : ${it.Id}")
+                                                Log.i("Fetch Records", "Name:  : ${it.listingName}")
+                                            }
+                                            loop@ for (i in BindingAdapter.dataList.indices) {
+                                                if (BindingAdapter.dataList[i].listingName.equals(restaurantList[position].restaurant!!.name)) {
+                                                    TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                                        .delete(BindingAdapter.dataList[i])
+
+                                                    break@loop
+                                                }
+                                            }
+
+                                        }
 
                                     }
                                 )
@@ -308,12 +347,22 @@ class MapFragment() : Fragment(),
     }
 
 
-
     override fun onCurrentItemChanged(
         viewHolder: RestaurantAdapter.ViewHolder?,
         adapterPosition: Int
     ) {
         val positionInDataSet = infiniteAdapter!!.getRealPosition(adapterPosition)
         onItemChanged(restaurantList.get(positionInDataSet))
+       /* if(flag==1){
+            val positionInDataSet = infiniteAdapter!!.getRealPosition(adapterPosition)
+            onItemChanged(restaurantList.get(positionInDataSet))
+        }*/
+       /* if(restaurantList.isEmpty()){
+
+        }else{
+            val positionInDataSet = infiniteAdapter!!.getRealPosition(adapterPosition)
+            onItemChanged(restaurantList.get(positionInDataSet))
+        }*/
+
     }
 }

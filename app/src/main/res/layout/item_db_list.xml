@@ -2,6 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
     <data>
+
         <variable
             name="itemClick"
             type="com.zomato.view.fragment.adapter.FavouritesAdapter.ProductItemClickListener" />
@@ -13,70 +14,83 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="160dp"
         android:orientation="horizontal"
         android:padding="10dp">
 
         <ImageView
             imageUrl="@{dbList.imagePath}"
-            android:scaleType="centerCrop"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="6" />
+            android:layout_weight="6"
+            android:scaleType="centerCrop" />
 
-        <LinearLayout
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="4"
-            android:orientation="vertical">
+            android:layout_weight="4">
 
-            <RelativeLayout
+            <LinearLayout
+
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="5dp"
+                        android:layout_toLeftOf="@+id/ivFav"
+                        android:maxLines="2"
+                        android:singleLine="true"
+                        android:text="@{dbList.listingName}"
+                        android:textColor="@color/black"
+                        android:textSize="18sp" />
+
+                    <ImageView
+                        android:id="@+id/ivFav"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:onClick="@{() -> itemClick.onProductItemClicked(dbList)}"
+                        android:src="@drawable/favorite_24" />
+                </RelativeLayout>
 
                 <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toLeftOf="@+id/ivFav"
-                    android:maxLines="2"
-                    android:singleLine="true"
-                    android:layout_marginRight="5dp"
-                    android:text="@{dbList.listingName}"
-                    android:textColor="@color/black"
-                    android:textSize="18sp" />
-
-                <ImageView
-                    android:id="@+id/ivFav"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:onClick="@{() -> itemClick.onProductItemClicked(dbList)}"
-                    android:src="@drawable/ic_baseline_favorite_24" />
-            </RelativeLayout>
+                    android:text="@{dbList.cuisin}"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@{dbList.avgRating}"
+                    android:textColor="@color/black"
+                    android:paddingLeft="10dp"
+                    android:paddingRight="10dp"
+                    background="@{dbList.textBack}"
+                    android:textSize="16sp" />
+
+
+            </LinearLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@color/black"
-                android:text="@{dbList.cuisin}"
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@{dbList.avgRating}"
-                android:textColor="@color/black"
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
                 android:layout_marginTop="10dp"
                 android:text="@{`Rs.`+dbList.minPrice}"
-                android:textSize="18sp"
                 android:textColor="@color/black"
+                android:textSize="18sp"
                 android:textStyle="bold" />
-        </LinearLayout>
+        </RelativeLayout>
     </LinearLayout>
 </layout>
