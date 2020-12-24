@@ -23,6 +23,7 @@
             android:padding="10dp">
 
             <TextView
+                android:layout_centerVertical="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/restaurant"
@@ -31,12 +32,13 @@
                 android:textStyle="bold" />
 
             <ImageView
+                android:layout_centerVertical="true"
                 android:id="@+id/ivMap"
-                android:layout_width="wrap_content"
-                android:padding="5dp"
-                android:layout_height="wrap_content"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
                 android:layout_alignParentRight="true"
                 android:background="@drawable/green_bg"
+                android:padding="10dp"
                 android:src="@drawable/map" />
         </RelativeLayout>
 
@@ -53,15 +55,15 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCuisin"
-            android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSearch"
-            android:visibility="gone"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:visibility="gone" />
 
         <com.facebook.shimmer.ShimmerFrameLayout
             android:layout_width="match_parent"

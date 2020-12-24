@@ -20,10 +20,13 @@ object BindingAdapter {
     @JvmStatic
     @BindingAdapter("imageUrl")
     fun setImageUrl(imageView: ImageView, url: String?) {
+        if (url == null) {
+            imageView.setImageResource(R.drawable.placeholder)
+        } else {
+            imageView.load(url) {
+                crossfade(true).placeholder(R.drawable.placeholder)
 
-        imageView.load(url) {
-            crossfade(true).placeholder(R.drawable.placeholder)
-
+            }
         }
     }
 

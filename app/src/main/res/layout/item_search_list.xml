@@ -29,7 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="6"
-            android:scaleType="centerCrop" />
+            android:scaleType="fitXY" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -69,20 +69,23 @@
                 </RelativeLayout>
 
                 <TextView
+                    android:layout_marginTop="5dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:maxLines="3"
                     android:text="@{restaurantList.restaurant.cuisines}"
                     android:textColor="@color/black"
                     android:textSize="16sp" />
 
                 <TextView
+                    android:layout_marginTop="5dp"
                     background="@{String.valueOf(restaurantList.restaurant.userRating.ratingColor)}"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:paddingLeft="10dp"
                     android:paddingRight="10dp"
                     android:text="@{String.valueOf(restaurantList.restaurant.userRating.aggregateRating)}"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textSize="16sp" />
 
 
@@ -93,7 +96,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentBottom="true"
                 android:layout_marginTop="10dp"
-                android:text="@{`Rs.`+String.valueOf(restaurantList.restaurant.averageCostForTwo)}"
+                android:text="@{`₹`+String.valueOf(restaurantList.restaurant.averageCostForTwo)}"
                 android:textColor="@color/black"
                 android:textSize="18sp"
                 android:textStyle="bold" />

@@ -29,7 +29,7 @@ class SearchPlacesViewModel(application: Application):AndroidViewModel(applicati
         val request =
             FindAutocompletePredictionsRequest.builder()
                 .setCountry("IN")
-                .setTypeFilter(TypeFilter.CITIES)
+                .setTypeFilter(TypeFilter.ADDRESS)
                 .setSessionToken(token)
                 .setQuery(queryText)
                 .build()
