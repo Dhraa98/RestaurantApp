@@ -53,11 +53,13 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvCuisin"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvSearch"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
 
@@ -80,7 +82,7 @@
         </com.facebook.shimmer.ShimmerFrameLayout>
 
         <FrameLayout
-            android:id="@+id/frm_contain"
+            android:id="@+id/frm"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
     </LinearLayout>

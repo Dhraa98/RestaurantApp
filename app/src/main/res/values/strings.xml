@@ -6,6 +6,7 @@
     <string name="msg_location_empty">location is null</string>
     <string name="google_maps_key">AIzaSyBCbTKAhr6-2tfQDtVLbd40GvKLeedJn7Q</string>
     <string name="restaurant">Restaurants</string>
+    <string name="favourites">My Favorites</string>
     <string name="enable_gps">Enable GPS</string>
     <string name="required_for_this_app">Required for this app</string>
     <string name="enable_now">Enable Now</string>

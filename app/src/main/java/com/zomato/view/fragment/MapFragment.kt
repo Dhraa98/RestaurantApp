@@ -37,7 +37,7 @@ import com.zomato.view.fragment.adapter.RestaurantAdapter
 import com.zomato.view.fragment.viewmodel.MainActivityViewModel
 
 class MapFragment() : Fragment(),
-    OnMapReadyCallback, RestaurantAdapter.ProductItemClickListener,
+    OnMapReadyCallback,
     DiscreteScrollView.OnItemChangedListener<RestaurantAdapter.ViewHolder> {
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
@@ -110,7 +110,9 @@ class MapFragment() : Fragment(),
                                 RestaurantAdapter(
                                     viewModel,
                                     restaurantList,
-                                    this
+                                    { position,Bool->
+
+                                    }
                                 )
                             )
                         binding.itemPicker.setAdapter(infiniteAdapter)
@@ -305,9 +307,7 @@ class MapFragment() : Fragment(),
         }
     }
 
-    override fun onProductItemClicked(restaurant: RestaurantModel.NearbyRestaurant) {
 
-    }
 
     override fun onCurrentItemChanged(
         viewHolder: RestaurantAdapter.ViewHolder?,

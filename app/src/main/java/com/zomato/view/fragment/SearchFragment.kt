@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,18 +25,20 @@ import com.zomato.database.TodoEntity
 import com.zomato.database.TodoRoomDatabase
 import com.zomato.databinding.FragmentSearchBinding
 import com.zomato.retrofit.RestaurantModel
+import com.zomato.utils.BindingAdapter
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_CHOOSE_CURRENT
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG_MAP
+import com.zomato.utils.BindingAdapter.EXTRA_NAME
 import com.zomato.utils.PermissionUtils
 import com.zomato.view.fragment.adapter.CuisinAdapter
 import com.zomato.view.fragment.adapter.RestaurantAdapter
 import com.zomato.view.fragment.viewmodel.MainActivityViewModel
 
 
-class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
+class SearchFragment : Fragment() {
     var restaurantList: List<RestaurantModel.NearbyRestaurant> = listOf()
     // var cuisinList: List<RestaurantModel.Popularity> = listOf()
 
@@ -45,6 +48,8 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
     private var longitude: Double = 0.0
     private var flag: Int = 0
     private var isPlaceSelected: Int = 0
+    private var isVisibleToUser: Int = 0
+    private var isFirstTime: Boolean = true
     private lateinit var binding: FragmentSearchBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var adapter: RestaurantAdapter
@@ -60,6 +65,7 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_search, container, false)
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
         binding.lifecycleOwner = this
+        binding.viewmodel = viewModel
         initControls()
         return binding.root
 
@@ -68,6 +74,7 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
     private fun initControls() {
 
         binding.btnSearch.setOnClickListener {
+
             restaurantList = emptyList()
             cuisinList.clear()
             val intent = Intent(activity, SearchPlaceActivity::class.java)
@@ -82,7 +89,7 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
                 var searchFragment: SearchFragment = SearchFragment()
                 binding.ivMap.setImageResource(R.drawable.map)
                 childFragmentManager.beginTransaction()
-                    .replace(R.id.frm_contain, searchFragment).addToBackStack("tag")
+                    .replace(R.id.frm, searchFragment).addToBackStack("tag")
                     .commit()
 
             } else {
@@ -92,10 +99,10 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
                 if (isPlaceSelected == 1) {
                     bundle.putDouble(EXTRA_KEY_LAT_MAP, viewModel.latitude)
                     bundle.putDouble(EXTRA_KEY_LNG_MAP, viewModel.longitude)
-                }else{
+                } else {
 
                     bundle.putDouble(EXTRA_KEY_LAT_MAP, 0.0)
-                    bundle.putDouble(EXTRA_KEY_LNG_MAP,0.0)
+                    bundle.putDouble(EXTRA_KEY_LNG_MAP, 0.0)
                 }
 
 
@@ -105,7 +112,7 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
                 flag = 1
                 binding.ivMap.setImageResource(R.drawable.menu)
                 childFragmentManager.beginTransaction()
-                    .replace(R.id.frm_contain, mapFragment).addToBackStack("tag")
+                    .replace(R.id.frm, mapFragment).addToBackStack("tag")
                     .commit()
 
 
@@ -118,34 +125,44 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 101) {
+
             isPlaceSelected = 1
+
             /* binding.rvSearch.visibility = View.VISIBLE
              binding.frmContain.visibility = View.GONE*/
-            if (data!!.getBooleanExtra(EXTRA_KEY_CHOOSE_CURRENT, false)) {
-                viewModel.latitude = latitude
-                viewModel.longitude = longitude
-            } else {
-                viewModel.latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
-                viewModel.longitude = data!!.getDoubleExtra(EXTRA_KEY_LNG, 0.0)
-                latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
-                longitude = data!!.getDoubleExtra(EXTRA_KEY_LNG, 0.0)
-            }
-
-            viewModel.data.observe(requireActivity(), Observer {
-                if (it.isSuccessful) {
-                    if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-
-                        restaurantList = it.body()!!.nearbyRestaurants!!
-
-                        for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
-                            cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
-                        }
-                        initRestaurant(restaurantList)
-                        initCuisine(restaurantList)
-                    }
+            if (data != null) {
+                binding.btnSearch.text = data.getStringExtra(EXTRA_NAME)
+                if (data!!.getBooleanExtra(EXTRA_KEY_CHOOSE_CURRENT, false)) {
+                    viewModel.latitude = latitude
+                    viewModel.longitude = longitude
+                } else {
+                    viewModel.latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
+                    viewModel.longitude = data!!.getDoubleExtra(EXTRA_KEY_LNG, 0.0)
+                    latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
+                    longitude = data!!.getDoubleExtra(EXTRA_KEY_LNG, 0.0)
                 }
+                viewModel.progressVisibility.value = true
+                viewModel.data.observe(requireActivity(), Observer {
+                    viewModel.progressVisibility.value = false
+                    binding.rvCuisin.visibility = View.VISIBLE
+                    binding.rvSearch.visibility = View.VISIBLE
+                    if (it.isSuccessful) {
+                        if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
 
-            })
+                            restaurantList = it.body()!!.nearbyRestaurants!!
+
+                            for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
+                                cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
+                            }
+                            initRestaurant(restaurantList)
+                            initCuisine(restaurantList)
+                        }
+                    }
+
+
+                })
+
+            }
         }
     }
 
@@ -161,7 +178,7 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
             val resList = ArrayList<RestaurantModel.NearbyRestaurant>()
             for (i in selectedCuisine.indices) {
                 for (k in restaurantList.indices) {
-                    if (restaurantList[k].restaurant!!.cuisines == selectedCuisine[i]) {
+                    if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
                         resList.add(restaurantList[k])
                     }
                 }
@@ -179,7 +196,39 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
     }
 
     private fun initRestaurant(list: List<RestaurantModel.NearbyRestaurant>) {
-        adapter = RestaurantAdapter(viewModel, list, this)
+        adapter = RestaurantAdapter(viewModel, list, { position, bool ->
+            if (bool) {
+                var todoEntity = TodoEntity()
+                todoEntity.avgRating =
+                    restaurantList[position].restaurant!!.userRating!!.aggregateRating.toString()
+                todoEntity.cuisin = restaurantList[position].restaurant!!.cuisines.toString()
+                todoEntity.listingName = restaurantList[position].restaurant!!.name.toString()
+                todoEntity.minPrice =
+                    restaurantList[position].restaurant!!.averageCostForTwo.toString()
+                todoEntity.imagePath =
+                    restaurantList[position].restaurant!!.featuredImage.toString()
+                TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
+            } else {
+
+                BindingAdapter.dataList.clear()
+                TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
+                {
+                    BindingAdapter.dataList.addAll(listOf(it))
+                    Log.i("Fetch Records", "Id:  : ${it.Id}")
+                    Log.i("Fetch Records", "Name:  : ${it.listingName}")
+                }
+                loop@ for (i in BindingAdapter.dataList.indices) {
+                    if (BindingAdapter.dataList[i].listingName.equals(restaurantList[position].restaurant!!.name)) {
+                        TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                            .delete(BindingAdapter.dataList[i])
+
+                        break@loop
+                    }
+                }
+
+            }
+
+        })
         manager = LinearLayoutManager(activity)
         binding.rvSearch.adapter = adapter
         binding.rvSearch.layoutManager = manager
@@ -274,45 +323,33 @@ class SearchFragment : Fragment(), RestaurantAdapter.ProductItemClickListener {
         )
     }
 
-    override fun onProductItemClicked(restaurant: RestaurantModel.NearbyRestaurant) {
-        var todoEntity = TodoEntity()
-        todoEntity.avgRating = restaurant.restaurant!!.userRating!!.aggregateRating.toString()
-        todoEntity.cuisin = restaurant.restaurant!!.cuisines.toString()
-        todoEntity.listingName = restaurant.restaurant!!.name.toString()
-        todoEntity.minPrice = restaurant.restaurant!!.averageCostForTwo.toString()
-        todoEntity.imagePath = restaurant.restaurant!!.featuredImage.toString()
-        TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
 
-//        if (viewModel.itemClicked.value!!){
-//            viewModel.itemClicked.value = false
-//        }else{
-//            viewModel.itemClicked.value = true
-//        }
+    /*  override fun onResume() {
+          super.onResume()
 
-//        initRestaurant(restaurantList)
-    }
+          if (!isFirstTime) {
+              viewModel.latitude = latitude
+              viewModel.longitude = longitude
+              viewModel.data.observe(requireActivity(), Observer {
+                  if (it.isSuccessful) {
+                      if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
+
+                          restaurantList = it.body()!!.nearbyRestaurants!!
+
+                          for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
+                              cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
+                          }
+                          initRestaurant(restaurantList)
+                          initCuisine(restaurantList)
+                      }
+                  }
+
+              })
+          }
+         isFirstTime = false
+      }*/
 
 
-    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
-        super.setUserVisibleHint(isVisibleToUser)
-        if (isVisibleToUser) {
-            viewModel.latitude = latitude
-            viewModel.longitude = longitude
-            viewModel.data.observe(requireActivity(), Observer {
-                if (it.isSuccessful) {
-                    if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-
-                        restaurantList = it.body()!!.nearbyRestaurants!!
-
-                        for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
-                            cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
-                        }
-                        initRestaurant(restaurantList)
-                        initCuisine(restaurantList)
-                    }
-                }
-
-            })
-        }
-    }
 }
+
+

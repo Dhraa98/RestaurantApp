@@ -26,13 +26,14 @@ import com.zomato.databinding.ActivitySearchPlaceBinding
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_CHOOSE_CURRENT
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG
+import com.zomato.utils.BindingAdapter.EXTRA_NAME
 import com.zomato.view.fragment.adapter.SearchListAdapter
 import com.zomato.view.fragment.viewmodel.SearchPlacesViewModel
 
 
 class SearchPlaceActivity : AppCompatActivity() {
     private val TAG = "SearchPlaceActivity"
-    private var flag : Boolean=false
+    private var flag: Boolean = false
     private lateinit var binding: ActivitySearchPlaceBinding
     lateinit var placesClient: PlacesClient
     lateinit var adapter: SearchListAdapter
@@ -57,7 +58,7 @@ class SearchPlaceActivity : AppCompatActivity() {
             onBackPressed()
         }
         binding.lnChooseCurrentLocation.setOnClickListener {
-            flag=true
+            flag = true
             val intent = Intent()
             intent.putExtra(
                 EXTRA_KEY_CHOOSE_CURRENT,
@@ -81,10 +82,16 @@ class SearchPlaceActivity : AppCompatActivity() {
             }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                binding.lnChooseCurrentLocation.visibility=View.GONE
+                binding.lnChooseCurrentLocation.visibility = View.GONE
                 viewModel.searchResult(s.toString())
-                viewModel.responseData.observe(this@SearchPlaceActivity, Observer {
-                    searchList.add(it)
+//                searchList.clear()
+                viewModel.responseList!!.observe(this@SearchPlaceActivity, Observer {
+                    //searchList.add(it.)
+                    searchList.clear()
+                    for (i in viewModel.responseData.value!!.indices) {
+                        searchList.add(viewModel.responseData.value!![i])
+                    }
+
                     adapter = SearchListAdapter(searchList, { position ->
                         val placeFields =
                             listOf(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG)
@@ -99,7 +106,7 @@ class SearchPlaceActivity : AppCompatActivity() {
                                 Log.e(TAG, "Place found: ${place.name},${place.latLng}")
                                 val placeLat = place.latLng!!.latitude
                                 val placeLng = place.latLng!!.longitude
-                                flag=false
+                                flag = false
                                 val intent = Intent()
                                 intent.putExtra(
                                     EXTRA_KEY_LAT,
@@ -108,6 +115,10 @@ class SearchPlaceActivity : AppCompatActivity() {
                                 intent.putExtra(
                                     EXTRA_KEY_LNG,
                                     placeLng
+                                )
+                                intent.putExtra(
+                                    EXTRA_NAME,
+                                    place.name
                                 )
                                 setResult(
                                     Activity.RESULT_OK,

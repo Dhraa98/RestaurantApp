@@ -26,7 +26,7 @@ class SearchListAdapter(val searchList: MutableList<AutocompletePrediction>, pri
     }
 
     override fun onBindViewHolder(holder: SearchListAdapter.ViewHolder, position: Int) {
-        holder.binding.tvSearchListText.text = searchList[position].getPrimaryText(null).toString()
+        holder.binding.tvSearchListText.text = searchList[position].getFullText(null).toString()
         holder.itemView.setOnClickListener {
             callback(position)
         }

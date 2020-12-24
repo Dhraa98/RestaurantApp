@@ -55,4 +55,18 @@ class FavouriteFragment : Fragment(), FavouritesAdapter.ProductItemClickListener
         adapter.notifyDataSetChanged()
         dataList.remove(restaurant)
     }
+
+//    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
+//        super.setUserVisibleHint(isVisibleToUser)
+//        if(isVisibleToUser){
+//            initControls()
+//        }
+//    }
+
+    override fun setMenuVisibility(menuVisible: Boolean) {
+        super.setMenuVisibility(menuVisible)
+        if (menuVisible)
+            initControls()
+    }
+
 }

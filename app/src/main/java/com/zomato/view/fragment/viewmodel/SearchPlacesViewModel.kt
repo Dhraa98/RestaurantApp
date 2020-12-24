@@ -15,7 +15,13 @@ import com.google.android.libraries.places.api.net.PlacesClient
 
 class SearchPlacesViewModel(application: Application):AndroidViewModel(application) {
     private  val TAG = "SearchPlacesViewModel"
-    var responseData: MutableLiveData<AutocompletePrediction> = MutableLiveData()
+    //var responseData: MutableLiveData<ArrayList<AutocompletePrediction> > = MutableLiveData()
+    var responseData: MutableLiveData<ArrayList<AutocompletePrediction> > = MutableLiveData(
+        ArrayList()
+    )
+    var list : MutableList<AutocompletePrediction> = mutableListOf()
+    var responseList : MutableLiveData<Int> = MutableLiveData()
+   // var responseList : MutableLiveData<AutocompletePrediction > = MutableLiveData()
     lateinit var placesClient: PlacesClient
     fun searchResult(queryText: String) {
         placesClient = Places.createClient(getApplication())
@@ -31,14 +37,18 @@ class SearchPlacesViewModel(application: Application):AndroidViewModel(applicati
 
         placesClient.findAutocompletePredictions(request)
             .addOnSuccessListener { response: FindAutocompletePredictionsResponse ->
+              //  responseData.value!!.addAll(response.autocompletePredictions)
+                responseData.value!!.clear()
                 for (prediction in response.autocompletePredictions) {
-                    responseData.value = prediction
+                    responseData.value!!.add(prediction)
+                //  responseData.value=(prediction)
                     Log.e(TAG, prediction.placeId)
                     Log.e(TAG, prediction.getPrimaryText(null).toString())
                     Log.e(TAG, prediction.getSecondaryText(null).toString())
                     Log.e(TAG, prediction.getFullText(null).toString())
                     Log.e(TAG, prediction.placeTypes.toString())
                 }
+                responseList!!.value = responseData.value!!.size
             }.addOnFailureListener { exception: Exception? ->
                 if (exception is ApiException) {
                     Log.e(TAG, "Place not found: " + exception.statusCode)

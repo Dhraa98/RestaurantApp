@@ -20,7 +20,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@android:color/white"
+        android:background="@color/white"
         android:orientation="horizontal"
         android:padding="10dp">
 
@@ -58,7 +58,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
-                    android:onClick="@{() -> itemClick.onProductItemClicked(restaurantList)}"
+
                     android:src="@drawable/ic_baseline_favorite_border_24" />
             </RelativeLayout>
 

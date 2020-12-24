@@ -11,18 +11,18 @@ import com.zomato.view.fragment.viewmodel.MainActivityViewModel
 class RestaurantAdapter(
     var viewMode : MainActivityViewModel,
     var restaurantList: List<RestaurantModel.NearbyRestaurant>,
-    private val mListener: ProductItemClickListener
+    var callback : (Int , Boolean) ->Unit
+
 ) :
     RecyclerView.Adapter<RestaurantAdapter.ViewHolder>() {
     class ViewHolder(val binding: ItemSearchListBinding) : RecyclerView.ViewHolder(binding.root) {
         fun Bind(
-             viewMode : MainActivityViewModel,
-            restaurantList: RestaurantModel.NearbyRestaurant,
-            listener: ProductItemClickListener
+            viewMode: MainActivityViewModel,
+            restaurantList: RestaurantModel.NearbyRestaurant
         ) {
             binding.restaurantList = restaurantList
             binding.viewmodel = viewMode
-            binding.itemClick = listener
+
 
             binding.executePendingBindings()
         }
@@ -42,11 +42,26 @@ class RestaurantAdapter(
     }
 
     interface ProductItemClickListener {
-//        android:src="@{viewmodel.itemClicked ? @drawable/ic_baseline_favorite_border_24 : @drawable/ic_baseline_favorite_24}"
+        //        android:src="@{viewmodel.itemClicked ? @drawable/ic_baseline_favorite_border_24 : @drawable/ic_baseline_favorite_24}"
         fun onProductItemClicked(restaurant: RestaurantModel.NearbyRestaurant)
 
     }
 
-    override fun onBindViewHolder(holder: RestaurantAdapter.ViewHolder, position: Int) =
-        holder.Bind(viewMode,restaurantList[position], mListener)
+    override fun onBindViewHolder(holder: RestaurantAdapter.ViewHolder, position: Int) {
+        holder.Bind(viewMode, restaurantList[position])
+
+        holder.binding.ivFav.setOnClickListener {
+            if (holder.binding.ivFav.isSelected){
+                holder.binding.ivFav.setImageResource(R.drawable.ic_baseline_favorite_border_24)
+                holder.binding.ivFav.isSelected = false
+                callback(holder.adapterPosition,false)
+            }else{
+                holder.binding.ivFav.setImageResource(R.drawable.ic_baseline_favorite_24)
+                holder.binding.ivFav.isSelected = true
+                callback(holder.adapterPosition,true)
+            }
+        }
+
+    }
+
 }

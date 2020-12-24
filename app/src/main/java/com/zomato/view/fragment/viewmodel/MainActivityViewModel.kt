@@ -15,16 +15,19 @@ class MainActivityViewModel(application: Application) : AndroidViewModel(applica
     var latitude = 0.0
     var longitude = 0.0
 
+
+
     var progressVisibility: MutableLiveData<Boolean> = MutableLiveData(false)
 
-    var itemClicked : MutableLiveData<Boolean> = MutableLiveData(false)
+
+    var itemClicked: MutableLiveData<Boolean> = MutableLiveData(false)
 
     val data: LiveData<Response<RestaurantModel>> = liveData(Dispatchers.IO) {
-       // progressVisibility.value = true
+//        progressVisibility.value=true
         val userRepository = RestauratRepository(latitude, longitude)
         val retrievedData = userRepository.getUsers()
         emit(retrievedData)
-       // progressVisibility.value = false
+//        progressVisibility.value=false
 
     }
 
