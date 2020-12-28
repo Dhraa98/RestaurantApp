@@ -60,7 +60,6 @@ class MapFragment() : Fragment(),
     private var cuisinList: ArrayList<String> = ArrayList()
     private var infiniteAdapter: InfiniteScrollAdapter<*>? = null
 
-    private var latlngs: ArrayList<LatLng> = ArrayList()
     var favouriteList: ArrayList<String> = ArrayList()
     private val options = MarkerOptions()
     val resList = ArrayList<RestaurantModel.NearbyRestaurant>()
@@ -91,7 +90,7 @@ class MapFragment() : Fragment(),
 
     private fun initControls() {
         val bundle = this.arguments
-        isPlaceSelected=1
+        isPlaceSelected = 1
         if (bundle != null) {
             viewModel.latitude = bundle.getDouble(EXTRA_KEY_LAT_MAP, 0.0)
             viewModel.longitude = bundle.getDouble(EXTRA_KEY_LNG_MAP, 0.0)
@@ -116,20 +115,18 @@ class MapFragment() : Fragment(),
                             val lng =
                                 it.body()!!.nearbyRestaurants!![i].restaurant!!.location!!.longitude!!.toDouble()
                             val latLng = LatLng(lat, lng)
-                            latlngs.add(latLng)
-                        }
-                        for (point in latlngs) {
-                            options.position(point!!)
-                            options.title("someTitle")
-                            options.snippet("someDesc")
+                            options.position(latLng!!)
+                            options.title(it.body()!!.nearbyRestaurants!![i].restaurant!!.name!!)
+
                             map.addMarker(options)
+
                         }
 
                         restaurantList = it.body()!!.nearbyRestaurants!!
                         for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
                             cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
                         }
-                      //  isAlreadyFavourite()
+                        //  isAlreadyFavourite()
                         //   adapter = RestaurantAdapter(restaurantList, this)
                         initRestaurant(restaurantList)
                         initCuisine(restaurantList)
@@ -175,7 +172,7 @@ class MapFragment() : Fragment(),
                                     resList[positionInDataSet].restaurant!!.userRating!!.ratingColor.toString()
                                 TodoRoomDatabase.getDatabase(activity!!).todoDao()
                                     .insertAll(todoEntity)
-                            }else{
+                            } else {
                                 todoEntity.avgRating =
                                     restaurantList[positionInDataSet].restaurant!!.userRating!!.aggregateRating.toString()
                                 todoEntity.cuisin =
@@ -249,19 +246,19 @@ class MapFragment() : Fragment(),
                     for (k in restaurantList.indices) {
                         if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
                             resList.add(restaurantList[k])
-                            isCuisinSelected=1
+                            isCuisinSelected = 1
 
                         }
                     }
                 }
                 if (resList.isNullOrEmpty()) {
                     initRestaurant(restaurantList)
-                    isCuisinSelected=0
+                    isCuisinSelected = 0
                 } else {
                     initRestaurant(resList)
                 }
             } else {
-                isCuisinSelected=0
+                isCuisinSelected = 0
                 initRestaurant(restaurantList)
             }
 
@@ -272,6 +269,7 @@ class MapFragment() : Fragment(),
         binding.rvCuisin.adapter = adapterCuisin
         binding.rvCuisin.layoutManager = managerCuisin
     }
+
     private fun onItemChanged(restaurantList: RestaurantModel.NearbyRestaurant) {
         map?.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
@@ -389,7 +387,7 @@ class MapFragment() : Fragment(),
 
     fun isAlreadyFavourite() {
         BindingAdapter.dataList.clear()
-        if(TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().size>0) {
+        if (TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().size > 0) {
             TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
             {
                 BindingAdapter.dataList.addAll(listOf(it))
