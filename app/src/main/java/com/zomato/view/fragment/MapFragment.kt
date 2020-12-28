@@ -54,6 +54,7 @@ class MapFragment() : Fragment(),
     private var infiniteAdapter: InfiniteScrollAdapter<*>? = null
 
     private var latlngs: ArrayList<LatLng> = ArrayList()
+    var favouriteList: ArrayList<String> = ArrayList()
     private val options = MarkerOptions()
     var restaurantList: List<RestaurantModel.NearbyRestaurant> = listOf()
     override fun onCreateView(
@@ -66,7 +67,15 @@ class MapFragment() : Fragment(),
 
 
         binding.lifecycleOwner = this
-        initControls()
+        if (PermissionUtils.isAccessFineLocationGranted(requireContext())) {
+            initControls()
+        } else {
+            PermissionUtils.requestAccessFineLocationPermission(
+                (activity as AppCompatActivity?)!!,
+                LOCATION_PERMISSION_REQUEST_CODE
+            )
+        }
+
         return binding.root
 
     }
@@ -87,11 +96,11 @@ class MapFragment() : Fragment(),
             viewModel.getRestaurant()!!.observe(requireActivity(), Observer {
                 if (it.isSuccessful) {
                     viewModel.progressVisibility.value = false
-                    binding.itemPicker.visibility=View.VISIBLE
+                    binding.itemPicker.visibility = View.VISIBLE
                     if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
-                        flag=1
-                       /*  restaurantList =
-                            it.body()!!.nearbyRestaurants!!*/
+                        flag = 1
+                        /*  restaurantList =
+                             it.body()!!.nearbyRestaurants!!*/
                         for (i in it.body()!!.nearbyRestaurants!!.indices) {
                             val lat =
                                 it.body()!!.nearbyRestaurants!![i].restaurant!!.location!!.latitude!!.toDouble()
@@ -108,6 +117,7 @@ class MapFragment() : Fragment(),
                         }
 
                         restaurantList = it.body()!!.nearbyRestaurants!!
+                      //  isAlreadyFavourite()
                         //   adapter = RestaurantAdapter(restaurantList, this)
                         manager =
                             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
@@ -116,33 +126,47 @@ class MapFragment() : Fragment(),
                         infiniteAdapter =
                             InfiniteScrollAdapter.wrap(
                                 RestaurantAdapter(
-                                    viewModel,
+                                    viewModel, requireContext(),
                                     restaurantList,
                                     { position, Bool ->
                                         if (Bool) {
+                                            val positionInDataSet =
+                                                infiniteAdapter!!.getRealPosition(position)
                                             var todoEntity = TodoEntity()
                                             todoEntity.avgRating =
-                                                restaurantList[position].restaurant!!.userRating!!.aggregateRating.toString()
-                                            todoEntity.cuisin = restaurantList[position].restaurant!!.cuisines.toString()
-                                            todoEntity.listingName = restaurantList[position].restaurant!!.name.toString()
+                                                restaurantList[positionInDataSet].restaurant!!.userRating!!.aggregateRating.toString()
+                                            todoEntity.cuisin =
+                                                restaurantList[positionInDataSet].restaurant!!.cuisines.toString()
+                                            todoEntity.listingName =
+                                                restaurantList[positionInDataSet].restaurant!!.name.toString()
                                             todoEntity.minPrice =
-                                                restaurantList[position].restaurant!!.averageCostForTwo.toString()
+                                                restaurantList[positionInDataSet].restaurant!!.averageCostForTwo.toString()
                                             todoEntity.imagePath =
-                                                restaurantList[position].restaurant!!.featuredImage.toString()
-                                            todoEntity.textBack= restaurantList[position].restaurant!!.userRating!!.ratingColor.toString()
-                                            TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
+                                                restaurantList[positionInDataSet].restaurant!!.featuredImage.toString()
+                                            todoEntity.textBack =
+                                                restaurantList[positionInDataSet].restaurant!!.userRating!!.ratingColor.toString()
+                                            TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                                .insertAll(todoEntity)
                                         } else {
 
                                             BindingAdapter.dataList.clear()
-                                            TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
-                                            {
-                                                BindingAdapter.dataList.addAll(listOf(it))
-                                                Log.i("Fetch Records", "Id:  : ${it.Id}")
-                                                Log.i("Fetch Records", "Name:  : ${it.listingName}")
-                                            }
+                                            TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                                .getAll().forEach()
+                                                {
+                                                    BindingAdapter.dataList.addAll(listOf(it))
+                                                    Log.i("Fetch Records", "Id:  : ${it.Id}")
+                                                    Log.i(
+                                                        "Fetch Records",
+                                                        "Name:  : ${it.listingName}"
+                                                    )
+                                                }
                                             loop@ for (i in BindingAdapter.dataList.indices) {
-                                                if (BindingAdapter.dataList[i].listingName.equals(restaurantList[position].restaurant!!.name)) {
-                                                    TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                                if (BindingAdapter.dataList[i].listingName.equals(
+                                                        restaurantList[position].restaurant!!.name
+                                                    )
+                                                ) {
+                                                    TodoRoomDatabase.getDatabase(activity!!)
+                                                        .todoDao()
                                                         .delete(BindingAdapter.dataList[i])
 
                                                     break@loop
@@ -162,6 +186,7 @@ class MapFragment() : Fragment(),
                                 .build()
                         )
                         onItemChanged(restaurantList.get(0));
+
                         //  binding.rvHorizontal.adapter = adapter
                         //  binding.rvHorizontal.layoutManager = manager
 
@@ -170,47 +195,7 @@ class MapFragment() : Fragment(),
 
             })
         }
-        /*  binding.rvHorizontal.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-              override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                  super.onScrolled(recyclerView, dx, dy)
 
-                  recyclerView.post {
-
-                  }
-                  val firstPos: Int = manager.findFirstVisibleItemPosition()
-                  val lastPos: Int = manager.findLastVisibleItemPosition()
-                  val middle = Math.abs(lastPos - firstPos) / 2 + firstPos
-
-                  var selectedPos = -1
-                  *//* for (i in 0 until adapter.itemCount) {
-                     if (i == middle) {
-                         adapter.getItem(i).setSelected(true)
-                         selectedPos = i
-                     } else {
-                         adapter.getItem(i).setSelected(false)
-                     }
-                 }*//*
-
-                adapter.notifyDataSetChanged()
-            }
-        })*/
-
-        /* binding.rvHorizontal.addOnItemTouchListener(
-             RecyclerItemClickListener(
-                 context,
-                 binding.rvHorizontal,
-                 object : AdapterView.OnItemClickListener() {
-
-                     override fun onItemClick(
-                         parent: AdapterView<*>?,
-                         view: View?,
-                         position: Int,
-                         id: Long
-                     ) {
-                         binding.rvHorizontal.smoothScrollToPosition(position)
-                     }
-                 })
-         )*/
     }
 
     private fun onItemChanged(restaurantList: RestaurantModel.NearbyRestaurant) {
@@ -238,58 +223,40 @@ class MapFragment() : Fragment(),
 
     @SuppressLint("MissingPermission")
     override fun onMapReady(googleMap: GoogleMap?) {
-        map = googleMap!!
-        val fusedLocationProviderClient =
-            LocationServices.getFusedLocationProviderClient(activity!!)
-        // for getting the current location update after every 2 seconds with high accuracy
-        val locationRequest = LocationRequest().setInterval(2000).setFastestInterval(2000)
-            .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-        fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                latitude = location.latitude
-                longitude = location.longitude
-                googleMap?.apply {
-                    val currentLocation = LatLng(latitude, longitude)
-                    addMarker(
-                        MarkerOptions()
-                            .position(currentLocation)
-                            .title("currentLocation")
-                    )
-                    googleMap?.animateCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                latitude,
-                                longitude
-                            ), 15f
+        if (PermissionUtils.isAccessFineLocationGranted(requireContext())) {
+
+
+            map = googleMap!!
+            val fusedLocationProviderClient =
+                LocationServices.getFusedLocationProviderClient(activity!!)
+            // for getting the current location update after every 2 seconds with high accuracy
+            val locationRequest = LocationRequest().setInterval(2000).setFastestInterval(2000)
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+            fusedLocationProviderClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    latitude = location.latitude
+                    longitude = location.longitude
+                    googleMap?.apply {
+                        val currentLocation = LatLng(latitude, longitude)
+                        addMarker(
+                            MarkerOptions()
+                                .position(currentLocation)
+                                .title("currentLocation")
                         )
-                    )
+                        googleMap?.animateCamera(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(
+                                    latitude,
+                                    longitude
+                                ), 15f
+                            )
+                        )
+                    }
                 }
             }
+
+
         }
-
-        /* fusedLocationProviderClient.requestLocationUpdates(
-             locationRequest,
-             object : LocationCallback() {
-                 override fun onLocationResult(locationResult: LocationResult) {
-                     super.onLocationResult(locationResult)
-                     for (location in locationResult.locations) {
-                         if(location!=null){
-                             latitude = location.latitude
-                             longitude = location.longitude
-
-                         }
-
-                         // latTextView.text = location.latitude.toString()
-                         // lngTextView.text = location.longitude.toString()
-                     }
-                     // Few more things we can do here:
-                     // For example: Update the location of user on server
-                 }
-             },
-             Looper.myLooper()
-
-         )*/
-
 
     }
 
@@ -346,6 +313,33 @@ class MapFragment() : Fragment(),
         }
     }
 
+    fun isAlreadyFavourite() {
+        BindingAdapter.dataList.clear()
+        if(TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().size>0) {
+            TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
+            {
+                BindingAdapter.dataList.addAll(listOf(it))
+                Log.i("Fetch Records", "Id:  : ${it.Id}")
+                Log.i("Fetch Records", "Name:  : ${it.listingName}")
+            }
+
+            for (i in BindingAdapter.dataList.indices) {
+                for (j in restaurantList.indices) {
+                    if (BindingAdapter.dataList[i].listingName.equals(restaurantList[j].restaurant!!.name)) {
+                        favouriteList.add(restaurantList[j].restaurant!!.name!!)
+                    }
+                }
+            }
+            adapter.notifyDataSetChanged()
+        }
+    }
+
+    override fun setMenuVisibility(menuVisible: Boolean) {
+        super.setMenuVisibility(menuVisible)
+        if (menuVisible) {
+
+        }
+    }
 
     override fun onCurrentItemChanged(
         viewHolder: RestaurantAdapter.ViewHolder?,
@@ -353,16 +347,7 @@ class MapFragment() : Fragment(),
     ) {
         val positionInDataSet = infiniteAdapter!!.getRealPosition(adapterPosition)
         onItemChanged(restaurantList.get(positionInDataSet))
-       /* if(flag==1){
-            val positionInDataSet = infiniteAdapter!!.getRealPosition(adapterPosition)
-            onItemChanged(restaurantList.get(positionInDataSet))
-        }*/
-       /* if(restaurantList.isEmpty()){
 
-        }else{
-            val positionInDataSet = infiniteAdapter!!.getRealPosition(adapterPosition)
-            onItemChanged(restaurantList.get(positionInDataSet))
-        }*/
 
     }
 }

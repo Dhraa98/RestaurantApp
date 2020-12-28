@@ -33,6 +33,7 @@ import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_NAME
+import com.zomato.utils.BindingAdapter.dataList
 import com.zomato.utils.PermissionUtils
 import com.zomato.view.fragment.adapter.CuisinAdapter
 import com.zomato.view.fragment.adapter.RestaurantAdapter
@@ -41,15 +42,17 @@ import com.zomato.view.fragment.viewmodel.MainActivityViewModel
 
 class SearchFragment : Fragment() {
     var restaurantList: List<RestaurantModel.NearbyRestaurant> = listOf()
+    // var favouriteList: ArrayList<String> = ArrayList()
     // var cuisinList: List<RestaurantModel.Popularity> = listOf()
 
     // private var cuisinList: ArrayList<RestaurantModel.Popularity> = ArrayList()
     private var cuisinList: ArrayList<String> = ArrayList()
+    val resList = ArrayList<RestaurantModel.NearbyRestaurant>()
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
     private var flag: Int = 0
     private var isPlaceSelected: Int = 0
-    private var isVisibleToUser: Int = 0
+    private var isCuisinSelected: Int = 0
     private var isFirstTime: Boolean = true
     private lateinit var binding: FragmentSearchBinding
     private lateinit var viewModel: MainActivityViewModel
@@ -67,7 +70,9 @@ class SearchFragment : Fragment() {
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
         binding.lifecycleOwner = this
         binding.viewmodel = viewModel
+
         initControls()
+
         return binding.root
 
     }
@@ -78,11 +83,14 @@ class SearchFragment : Fragment() {
 
             restaurantList = emptyList()
             cuisinList.clear()
+            binding.rvCuisin.visibility = View.GONE
+            binding.rvSearch.visibility = View.GONE
             val intent = Intent(activity, SearchPlaceActivity::class.java)
             startActivityForResult(intent, 101)
-
         }
+
         binding.ivMap.setOnClickListener {
+
 
             if (flag == 1) {
                 flag = 0
@@ -117,10 +125,11 @@ class SearchFragment : Fragment() {
                     .replace(R.id.frm, mapFragment).addToBackStack("tag")
                     .commit()
 
-
             }
 
+
         }
+
 
     }
 
@@ -137,8 +146,13 @@ class SearchFragment : Fragment() {
                 if (data!!.getBooleanExtra(EXTRA_KEY_CHOOSE_CURRENT, false)) {
                     viewModel.latitude = latitude
                     viewModel.longitude = longitude
-                    viewModel.setAddress( viewModel.latitude, viewModel.longitude)
-                    binding.btnSearch.text = viewModel.searchText.value.toString()
+                    viewModel.setAddress(viewModel.latitude, viewModel.longitude)
+                    if (PermissionUtils.isAccessFineLocationGranted(requireContext())) {
+                        binding.btnSearch.text = viewModel.searchText.value.toString()
+                    } else {
+                        binding.btnSearch.text = ""
+                    }
+
 
                 } else {
                     viewModel.latitude = data!!.getDoubleExtra(EXTRA_KEY_LAT, 0.0)
@@ -151,24 +165,24 @@ class SearchFragment : Fragment() {
                 viewModel.progressVisibility.value = true
                 viewModel.getRestaurant().observe(this, Observer {
 
-                        // your code here ...
+                    // your code here ...
 
-                        viewModel.progressVisibility.value = false
-                        binding.rvCuisin.visibility = View.VISIBLE
-                        binding.rvSearch.visibility = View.VISIBLE
-                        if (it.isSuccessful) {
-                            if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
+                    viewModel.progressVisibility.value = false
+                    binding.rvCuisin.visibility = View.VISIBLE
+                    binding.rvSearch.visibility = View.VISIBLE
+                    if (it.isSuccessful) {
+                        if (it.body()!!.nearbyRestaurants!!.size != null && it.body()!!.nearbyRestaurants!!.size > 0) {
 
-                                restaurantList = it.body()!!.nearbyRestaurants!!
+                            restaurantList = it.body()!!.nearbyRestaurants!!
 
-                                for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
-                                    cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
-                                }
-                                initRestaurant(restaurantList)
-                                initCuisine(restaurantList)
+                            for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
+                                cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
                             }
-                        }
+                            initRestaurant(restaurantList)
+                            initCuisine(restaurantList)
 
+                        }
+                    }
 
 
                 })
@@ -177,28 +191,36 @@ class SearchFragment : Fragment() {
         }
     }
 
+
     private fun initCuisine(restaurantList: List<RestaurantModel.NearbyRestaurant>) {
         val selectedCuisine = ArrayList<String>()
         adapterCuisin = CuisinAdapter(cuisinList) { position, isChecked ->
-            if (isChecked) {
-                selectedCuisine.add(cuisinList[position])
-            } else {
-                selectedCuisine.remove(cuisinList[position])
-            }
 
-            val resList = ArrayList<RestaurantModel.NearbyRestaurant>()
-            for (i in selectedCuisine.indices) {
-                for (k in restaurantList.indices) {
-                    if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
-                        resList.add(restaurantList[k])
+            if (isChecked)
+                selectedCuisine.add(cuisinList[position])
+            else
+                selectedCuisine.remove(cuisinList[position])
+
+            if (selectedCuisine.size != 0) {
+                resList.clear()
+                for (i in selectedCuisine.indices) {
+                    for (k in restaurantList.indices) {
+                        if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
+                            resList.add(restaurantList[k])
+
+                        }
                     }
                 }
-            }
-            if (resList.isNullOrEmpty()) {
-                initRestaurant(restaurantList)
+                if (resList.isNullOrEmpty()) {
+                    initRestaurant(restaurantList)
+                } else {
+                    initRestaurant(resList)
+                }
             } else {
-                initRestaurant(resList)
+                initRestaurant(restaurantList)
             }
+
+
         }
         managerCuisin =
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
@@ -207,19 +229,36 @@ class SearchFragment : Fragment() {
     }
 
     private fun initRestaurant(list: List<RestaurantModel.NearbyRestaurant>) {
-        adapter = RestaurantAdapter(viewModel, list, { position, bool ->
+        adapter = RestaurantAdapter(viewModel, requireContext(), list, { position, bool ->
             if (bool) {
                 var todoEntity = TodoEntity()
-                todoEntity.avgRating =
-                    restaurantList[position].restaurant!!.userRating!!.aggregateRating.toString()
-                todoEntity.cuisin = restaurantList[position].restaurant!!.cuisines.toString()
-                todoEntity.listingName = restaurantList[position].restaurant!!.name.toString()
-                todoEntity.minPrice =
-                    restaurantList[position].restaurant!!.averageCostForTwo.toString()
-                todoEntity.imagePath =
-                    restaurantList[position].restaurant!!.featuredImage.toString()
-                todoEntity.textBack= restaurantList[position].restaurant!!.userRating!!.ratingColor.toString()
-                TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
+                if (isCuisinSelected == 1) {
+                    todoEntity.avgRating =
+                        resList[position].restaurant!!.userRating!!.aggregateRating.toString()
+                    todoEntity.cuisin = resList[position].restaurant!!.cuisines.toString()
+                    todoEntity.listingName = resList[position].restaurant!!.name.toString()
+                    todoEntity.minPrice =
+                        resList[position].restaurant!!.averageCostForTwo.toString()
+                    todoEntity.imagePath =
+                        resList[position].restaurant!!.featuredImage.toString()
+                    todoEntity.textBack =
+                        resList[position].restaurant!!.userRating!!.ratingColor.toString()
+                    TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
+                } else {
+
+
+                    todoEntity.avgRating =
+                        restaurantList[position].restaurant!!.userRating!!.aggregateRating.toString()
+                    todoEntity.cuisin = restaurantList[position].restaurant!!.cuisines.toString()
+                    todoEntity.listingName = restaurantList[position].restaurant!!.name.toString()
+                    todoEntity.minPrice =
+                        restaurantList[position].restaurant!!.averageCostForTwo.toString()
+                    todoEntity.imagePath =
+                        restaurantList[position].restaurant!!.featuredImage.toString()
+                    todoEntity.textBack =
+                        restaurantList[position].restaurant!!.userRating!!.ratingColor.toString()
+                    TodoRoomDatabase.getDatabase(activity!!).todoDao().insertAll(todoEntity)
+                }
             } else {
 
                 BindingAdapter.dataList.clear()
@@ -244,6 +283,7 @@ class SearchFragment : Fragment() {
         manager = LinearLayoutManager(activity)
         binding.rvSearch.adapter = adapter
         binding.rvSearch.layoutManager = manager
+        adapter.notifyDataSetChanged()
 
     }
 
@@ -336,6 +376,18 @@ class SearchFragment : Fragment() {
     }
 
 
+    override fun setMenuVisibility(menuVisible: Boolean) {
+        super.setMenuVisibility(menuVisible)
+        if (menuVisible) {
+            if(isPlaceSelected==1){
+                adapter.notifyDataSetChanged()
+            }
+
+            //  isAlreadyFavourite()
+
+
+        }
+    }
 
 }
 
