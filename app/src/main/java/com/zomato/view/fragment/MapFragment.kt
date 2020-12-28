@@ -51,6 +51,7 @@ class MapFragment() : Fragment(),
     private var isCuisinSelected: Int = 0
     private lateinit var map: GoogleMap
     private lateinit var binding: FragmetMapBinding
+
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var adapter: RestaurantAdapter
     private lateinit var manager: LinearLayoutManager
@@ -191,7 +192,8 @@ class MapFragment() : Fragment(),
                                     .insertAll(todoEntity)
                             }
                         } else {
-
+                            val positionInDataSet =
+                                infiniteAdapter!!.getRealPosition(position)
                             BindingAdapter.dataList.clear()
                             TodoRoomDatabase.getDatabase(activity!!).todoDao()
                                 .getAll().forEach()
@@ -205,7 +207,7 @@ class MapFragment() : Fragment(),
                                 }
                             loop@ for (i in BindingAdapter.dataList.indices) {
                                 if (BindingAdapter.dataList[i].listingName.equals(
-                                        restaurantList[position].restaurant!!.name
+                                        restaurantList[positionInDataSet].restaurant!!.name
                                     )
                                 ) {
                                     TodoRoomDatabase.getDatabase(activity!!)
