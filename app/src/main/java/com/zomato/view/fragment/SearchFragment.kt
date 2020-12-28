@@ -97,11 +97,12 @@ class SearchFragment : Fragment() {
                 binding.ivMap.setImageResource(R.drawable.map)
                 binding.rvSearch.visibility = View.VISIBLE
                 binding.rvCuisin.visibility = View.VISIBLE
-                var searchFragment: SearchFragment = SearchFragment()
+                binding.frm.visibility = View.GONE
+                /*var searchFragment: SearchFragment = SearchFragment()
                 binding.ivMap.setImageResource(R.drawable.map)
                 childFragmentManager.beginTransaction()
                     .replace(R.id.frm, searchFragment).addToBackStack("tag")
-                    .commit()
+                    .commit()*/
 
             } else {
 
@@ -139,7 +140,7 @@ class SearchFragment : Fragment() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 101) {
 
-            isPlaceSelected = 1
+
 
             /* binding.rvSearch.visibility = View.VISIBLE
              binding.frmContain.visibility = View.GONE*/
@@ -182,7 +183,7 @@ class SearchFragment : Fragment() {
                             }
                             initRestaurant(restaurantList)
                             initCuisine(restaurantList)
-
+                            isPlaceSelected = 1
                         }
                     }
 
@@ -390,6 +391,7 @@ class SearchFragment : Fragment() {
         super.setMenuVisibility(menuVisible)
         if (menuVisible) {
             if (isPlaceSelected == 1) {
+
                 adapter.notifyDataSetChanged()
             }
 
