@@ -96,6 +96,7 @@ class SearchFragment : Fragment() {
                 flag = 0
                 binding.ivMap.setImageResource(R.drawable.map)
                 binding.rvSearch.visibility = View.VISIBLE
+                binding.rvCuisin.visibility = View.VISIBLE
                 var searchFragment: SearchFragment = SearchFragment()
                 binding.ivMap.setImageResource(R.drawable.map)
                 childFragmentManager.beginTransaction()
@@ -106,6 +107,7 @@ class SearchFragment : Fragment() {
 
                 val bundle = Bundle()
                 binding.rvSearch.visibility = View.GONE
+                binding.rvCuisin.visibility = View.GONE
                 if (isPlaceSelected == 1) {
                     bundle.putDouble(EXTRA_KEY_LAT_MAP, viewModel.latitude)
                     bundle.putDouble(EXTRA_KEY_LNG_MAP, viewModel.longitude)
@@ -196,27 +198,35 @@ class SearchFragment : Fragment() {
         val selectedCuisine = ArrayList<String>()
         adapterCuisin = CuisinAdapter(cuisinList) { position, isChecked ->
 
-            if (isChecked)
-                selectedCuisine.add(cuisinList[position])
-            else
-                selectedCuisine.remove(cuisinList[position])
+            if (isChecked) {
 
+
+                resList.clear()
+                selectedCuisine.add(cuisinList[position])
+
+            } else {
+                resList.clear()
+                selectedCuisine.remove(cuisinList[position])
+            }
             if (selectedCuisine.size != 0) {
                 resList.clear()
                 for (i in selectedCuisine.indices) {
                     for (k in restaurantList.indices) {
                         if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
                             resList.add(restaurantList[k])
+                            isCuisinSelected=1
 
                         }
                     }
                 }
                 if (resList.isNullOrEmpty()) {
+                    isCuisinSelected=0
                     initRestaurant(restaurantList)
                 } else {
                     initRestaurant(resList)
                 }
             } else {
+                isCuisinSelected=0
                 initRestaurant(restaurantList)
             }
 
@@ -379,7 +389,7 @@ class SearchFragment : Fragment() {
     override fun setMenuVisibility(menuVisible: Boolean) {
         super.setMenuVisibility(menuVisible)
         if (menuVisible) {
-            if(isPlaceSelected==1){
+            if (isPlaceSelected == 1) {
                 adapter.notifyDataSetChanged()
             }
 

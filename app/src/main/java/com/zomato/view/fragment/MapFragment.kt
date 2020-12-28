@@ -37,6 +37,7 @@ import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG_MAP
 import com.zomato.utils.DiscreteScrollViewOptions
 import com.zomato.utils.PermissionUtils
+import com.zomato.view.fragment.adapter.CuisinAdapter
 import com.zomato.view.fragment.adapter.RestaurantAdapter
 import com.zomato.view.fragment.viewmodel.MainActivityViewModel
 
@@ -46,16 +47,22 @@ class MapFragment() : Fragment(),
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
     private var flag: Int = 0
+    private var isPlaceSelected: Int = 0
+    private var isCuisinSelected: Int = 0
     private lateinit var map: GoogleMap
     private lateinit var binding: FragmetMapBinding
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var adapter: RestaurantAdapter
     private lateinit var manager: LinearLayoutManager
+    private lateinit var managerCuisin: LinearLayoutManager
+    private lateinit var adapterCuisin: CuisinAdapter
+    private var cuisinList: ArrayList<String> = ArrayList()
     private var infiniteAdapter: InfiniteScrollAdapter<*>? = null
 
     private var latlngs: ArrayList<LatLng> = ArrayList()
     var favouriteList: ArrayList<String> = ArrayList()
     private val options = MarkerOptions()
+    val resList = ArrayList<RestaurantModel.NearbyRestaurant>()
     var restaurantList: List<RestaurantModel.NearbyRestaurant> = listOf()
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -83,6 +90,7 @@ class MapFragment() : Fragment(),
 
     private fun initControls() {
         val bundle = this.arguments
+        isPlaceSelected=1
         if (bundle != null) {
             viewModel.latitude = bundle.getDouble(EXTRA_KEY_LAT_MAP, 0.0)
             viewModel.longitude = bundle.getDouble(EXTRA_KEY_LNG_MAP, 0.0)
@@ -117,75 +125,13 @@ class MapFragment() : Fragment(),
                         }
 
                         restaurantList = it.body()!!.nearbyRestaurants!!
+                        for (i in it.body()!!.popularity!!.topCuisines!!.indices) {
+                            cuisinList.add(it.body()!!.popularity!!.topCuisines!![i])
+                        }
                       //  isAlreadyFavourite()
                         //   adapter = RestaurantAdapter(restaurantList, this)
-                        manager =
-                            LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
-                        binding.itemPicker.setOrientation(DSVOrientation.HORIZONTAL)
-                        binding.itemPicker.addOnItemChangedListener(this)
-                        infiniteAdapter =
-                            InfiniteScrollAdapter.wrap(
-                                RestaurantAdapter(
-                                    viewModel, requireContext(),
-                                    restaurantList,
-                                    { position, Bool ->
-                                        if (Bool) {
-                                            val positionInDataSet =
-                                                infiniteAdapter!!.getRealPosition(position)
-                                            var todoEntity = TodoEntity()
-                                            todoEntity.avgRating =
-                                                restaurantList[positionInDataSet].restaurant!!.userRating!!.aggregateRating.toString()
-                                            todoEntity.cuisin =
-                                                restaurantList[positionInDataSet].restaurant!!.cuisines.toString()
-                                            todoEntity.listingName =
-                                                restaurantList[positionInDataSet].restaurant!!.name.toString()
-                                            todoEntity.minPrice =
-                                                restaurantList[positionInDataSet].restaurant!!.averageCostForTwo.toString()
-                                            todoEntity.imagePath =
-                                                restaurantList[positionInDataSet].restaurant!!.featuredImage.toString()
-                                            todoEntity.textBack =
-                                                restaurantList[positionInDataSet].restaurant!!.userRating!!.ratingColor.toString()
-                                            TodoRoomDatabase.getDatabase(activity!!).todoDao()
-                                                .insertAll(todoEntity)
-                                        } else {
-
-                                            BindingAdapter.dataList.clear()
-                                            TodoRoomDatabase.getDatabase(activity!!).todoDao()
-                                                .getAll().forEach()
-                                                {
-                                                    BindingAdapter.dataList.addAll(listOf(it))
-                                                    Log.i("Fetch Records", "Id:  : ${it.Id}")
-                                                    Log.i(
-                                                        "Fetch Records",
-                                                        "Name:  : ${it.listingName}"
-                                                    )
-                                                }
-                                            loop@ for (i in BindingAdapter.dataList.indices) {
-                                                if (BindingAdapter.dataList[i].listingName.equals(
-                                                        restaurantList[position].restaurant!!.name
-                                                    )
-                                                ) {
-                                                    TodoRoomDatabase.getDatabase(activity!!)
-                                                        .todoDao()
-                                                        .delete(BindingAdapter.dataList[i])
-
-                                                    break@loop
-                                                }
-                                            }
-
-                                        }
-
-                                    }
-                                )
-                            )
-                        binding.itemPicker.setAdapter(infiniteAdapter)
-                        binding.itemPicker.setItemTransitionTimeMillis(DiscreteScrollViewOptions.getTransitionTime())
-                        binding.itemPicker.setItemTransformer(
-                            ScaleTransformer.Builder()
-                                .setMinScale(0.8f)
-                                .build()
-                        )
-                        onItemChanged(restaurantList.get(0));
+                        initRestaurant(restaurantList)
+                        initCuisine(restaurantList)
 
                         //  binding.rvHorizontal.adapter = adapter
                         //  binding.rvHorizontal.layoutManager = manager
@@ -198,6 +144,132 @@ class MapFragment() : Fragment(),
 
     }
 
+    private fun initRestaurant(list: List<RestaurantModel.NearbyRestaurant>) {
+        manager =
+            LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+        binding.itemPicker.setOrientation(DSVOrientation.HORIZONTAL)
+        binding.itemPicker.addOnItemChangedListener(this)
+        infiniteAdapter =
+            InfiniteScrollAdapter.wrap(
+                RestaurantAdapter(
+                    viewModel, requireContext(),
+                    list,
+                    { position, Bool ->
+                        if (Bool) {
+                            val positionInDataSet =
+                                infiniteAdapter!!.getRealPosition(position)
+                            var todoEntity = TodoEntity()
+                            if (isCuisinSelected == 1) {
+                                todoEntity.avgRating =
+                                    resList[positionInDataSet].restaurant!!.userRating!!.aggregateRating.toString()
+                                todoEntity.cuisin =
+                                    resList[positionInDataSet].restaurant!!.cuisines.toString()
+                                todoEntity.listingName =
+                                    resList[positionInDataSet].restaurant!!.name.toString()
+                                todoEntity.minPrice =
+                                    resList[positionInDataSet].restaurant!!.averageCostForTwo.toString()
+                                todoEntity.imagePath =
+                                    resList[positionInDataSet].restaurant!!.featuredImage.toString()
+                                todoEntity.textBack =
+                                    resList[positionInDataSet].restaurant!!.userRating!!.ratingColor.toString()
+                                TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                    .insertAll(todoEntity)
+                            }else{
+                                todoEntity.avgRating =
+                                    restaurantList[positionInDataSet].restaurant!!.userRating!!.aggregateRating.toString()
+                                todoEntity.cuisin =
+                                    restaurantList[positionInDataSet].restaurant!!.cuisines.toString()
+                                todoEntity.listingName =
+                                    restaurantList[positionInDataSet].restaurant!!.name.toString()
+                                todoEntity.minPrice =
+                                    restaurantList[positionInDataSet].restaurant!!.averageCostForTwo.toString()
+                                todoEntity.imagePath =
+                                    restaurantList[positionInDataSet].restaurant!!.featuredImage.toString()
+                                todoEntity.textBack =
+                                    restaurantList[positionInDataSet].restaurant!!.userRating!!.ratingColor.toString()
+                                TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                    .insertAll(todoEntity)
+                            }
+                        } else {
+
+                            BindingAdapter.dataList.clear()
+                            TodoRoomDatabase.getDatabase(activity!!).todoDao()
+                                .getAll().forEach()
+                                {
+                                    BindingAdapter.dataList.addAll(listOf(it))
+                                    Log.i("Fetch Records", "Id:  : ${it.Id}")
+                                    Log.i(
+                                        "Fetch Records",
+                                        "Name:  : ${it.listingName}"
+                                    )
+                                }
+                            loop@ for (i in BindingAdapter.dataList.indices) {
+                                if (BindingAdapter.dataList[i].listingName.equals(
+                                        restaurantList[position].restaurant!!.name
+                                    )
+                                ) {
+                                    TodoRoomDatabase.getDatabase(activity!!)
+                                        .todoDao()
+                                        .delete(BindingAdapter.dataList[i])
+
+                                    break@loop
+                                }
+                            }
+
+                        }
+
+                    }
+                )
+            )
+        binding.itemPicker.setAdapter(infiniteAdapter)
+        binding.itemPicker.setItemTransitionTimeMillis(DiscreteScrollViewOptions.getTransitionTime())
+        binding.itemPicker.setItemTransformer(
+            ScaleTransformer.Builder()
+                .setMinScale(0.8f)
+                .build()
+        )
+        onItemChanged(restaurantList.get(0));
+
+    }
+
+    private fun initCuisine(restaurantList: List<RestaurantModel.NearbyRestaurant>) {
+        val selectedCuisine = ArrayList<String>()
+        adapterCuisin = CuisinAdapter(cuisinList) { position, isChecked ->
+
+            if (isChecked)
+                selectedCuisine.add(cuisinList[position])
+            else
+                selectedCuisine.remove(cuisinList[position])
+
+            if (selectedCuisine.size != 0) {
+                resList.clear()
+                for (i in selectedCuisine.indices) {
+                    for (k in restaurantList.indices) {
+                        if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
+                            resList.add(restaurantList[k])
+                            isCuisinSelected=1
+
+                        }
+                    }
+                }
+                if (resList.isNullOrEmpty()) {
+                    initRestaurant(restaurantList)
+                    isCuisinSelected=0
+                } else {
+                    initRestaurant(resList)
+                }
+            } else {
+                isCuisinSelected=0
+                initRestaurant(restaurantList)
+            }
+
+
+        }
+        managerCuisin =
+            LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+        binding.rvCuisin.adapter = adapterCuisin
+        binding.rvCuisin.layoutManager = managerCuisin
+    }
     private fun onItemChanged(restaurantList: RestaurantModel.NearbyRestaurant) {
         map?.animateCamera(
             CameraUpdateFactory.newLatLngZoom(
@@ -337,7 +409,9 @@ class MapFragment() : Fragment(),
     override fun setMenuVisibility(menuVisible: Boolean) {
         super.setMenuVisibility(menuVisible)
         if (menuVisible) {
-
+            if (isPlaceSelected == 1) {
+                adapter.notifyDataSetChanged()
+            }
         }
     }
 

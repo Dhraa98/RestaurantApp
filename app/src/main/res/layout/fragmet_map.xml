@@ -21,6 +21,12 @@
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvCuisin"
+            android:background="@color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+           />
 
         <com.yarolegovich.discretescrollview.DiscreteScrollView
             android:id="@+id/item_picker"
