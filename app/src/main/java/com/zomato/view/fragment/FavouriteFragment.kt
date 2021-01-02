@@ -9,6 +9,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.zomato.MainActivity
 import com.zomato.R
 import com.zomato.database.TodoEntity
 import com.zomato.database.TodoRoomDatabase
@@ -34,6 +35,7 @@ class FavouriteFragment : Fragment(), FavouritesAdapter.ProductItemClickListener
     }
 
     private fun initControls() {
+        binding.tvTxt.setTextColor(MainActivity.colorBackground)
         dataList.clear()
         TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
         {

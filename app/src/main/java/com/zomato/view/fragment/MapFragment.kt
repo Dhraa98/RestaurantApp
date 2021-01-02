@@ -19,6 +19,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
@@ -121,6 +122,14 @@ class MapFragment() : Fragment(),
                             map.addMarker(options)
 
                         }
+                        map.setOnMarkerClickListener(OnMarkerClickListener { marker ->
+                            val lat = marker.position.latitude
+                            val lng = marker.position.longitude
+                            val latLng = LatLng(lat, lng)
+
+                            false
+                        })
+
 
                         restaurantList = it.body()!!.nearbyRestaurants!!
                         for (i in it.body()!!.popularity!!.topCuisines!!.indices) {

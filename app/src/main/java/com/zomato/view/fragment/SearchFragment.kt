@@ -21,6 +21,7 @@ import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.zomato.MainActivity
 import com.zomato.R
 import com.zomato.database.TodoEntity
 import com.zomato.database.TodoRoomDatabase
@@ -78,7 +79,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun initControls() {
-
+        binding.tvMainTxt.setTextColor(MainActivity.colorBackground)
         binding.btnSearch.setOnClickListener {
 
             restaurantList = emptyList()
@@ -139,7 +140,6 @@ class SearchFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 101) {
-
 
 
             /* binding.rvSearch.visibility = View.VISIBLE
@@ -215,19 +215,19 @@ class SearchFragment : Fragment() {
                     for (k in restaurantList.indices) {
                         if (restaurantList[k].restaurant!!.cuisines!!.contains(selectedCuisine[i])) {
                             resList.add(restaurantList[k])
-                            isCuisinSelected=1
+                            isCuisinSelected = 1
 
                         }
                     }
                 }
                 if (resList.isNullOrEmpty()) {
-                    isCuisinSelected=0
+                    isCuisinSelected = 0
                     initRestaurant(restaurantList)
                 } else {
                     initRestaurant(resList)
                 }
             } else {
-                isCuisinSelected=0
+                isCuisinSelected = 0
                 initRestaurant(restaurantList)
             }
 

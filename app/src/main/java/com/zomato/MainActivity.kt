@@ -1,13 +1,25 @@
 package com.zomato
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Base64
+import android.util.Log
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
 import com.zomato.databinding.ActivityMainBinding
 import com.zomato.view.fragment.FavouriteFragment
 import com.zomato.view.fragment.SearchFragment
@@ -15,15 +27,52 @@ import com.zomato.view.fragment.adapter.MainPagerAdapter
 
 
 class MainActivity : AppCompatActivity() {
+    private val TAG = "MainActivity"
     private lateinit var bindig: ActivityMainBinding
+    private lateinit var remoteConfig: FirebaseRemoteConfig
+    private var COLOR_CONFIG_KEY = "Home"
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         bindig = DataBindingUtil.setContentView(this, R.layout.activity_main)
         initControls()
     }
 
+    @SuppressLint("ResourceType")
     private fun initControls() {
         bindig.lifecycleOwner = this
+        //Enable Debug mode for frequent fetches
+        remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3600
+        }
+
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        colorBackground = Color.parseColor(remoteConfig.getString(COLOR_CONFIG_KEY))
+        bindig.navigation.setBackgroundColor(colorBackground)
+        remoteConfig.fetchAndActivate()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    val updated = task.result
+                    remoteConfig.activate();
+                    Log.d(TAG, "Config params updated: $updated")
+                    Toast.makeText(
+                        this, "Fetch and activate succeeded",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        this, "Fetch failed",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+
+
+
+                Toast.makeText(this, remoteConfig.getString(COLOR_CONFIG_KEY), Toast.LENGTH_LONG)
+                    .show()
+                //remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+            }
 
         setupViewPager(bindig.mainTabsViewPager)
         bindig.navigation.setOnNavigationItemSelectedListener(
@@ -46,39 +95,17 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageSelected(position: Int) {
-//                if (prevMenuItem != null) prevMenuItem.setChecked(false) else bindig.navigation.getMenu()
-//                    .getItem(0).setChecked(false)
+
                 bindig.navigation.getMenu().getItem(position).setChecked(true)
-//                prevMenuItem = bindig.navigation.getMenu().getItem(position)
             }
 
             override fun onPageScrollStateChanged(state: Int) {}
         })
-      /*  var searchFragment: SearchFragment = SearchFragment()
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.frm_contain, searchFragment)
-            .commit()
-        bindig.navigation.setOnNavigationItemSelectedListener {
-            when (it.itemId) {
-                R.id.page_1 -> {
-                    var searchFragment: SearchFragment = SearchFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.frm_contain, searchFragment)
-                        .commit()
-                    // Respond to navigation item 1 click
-                    true
-                }
-                R.id.page_2 -> {
-                    var favouritesFragment: FavouriteFragment = FavouriteFragment()
-                    supportFragmentManager.beginTransaction()
-                        .replace(R.id.frm_contain, favouritesFragment)
-                        .commit()
-                    // Respond to navigation item 2 click
-                    true
-                }
-                else -> false
-            }
-        }*/
+
+    }
+
+    companion object {
+        var colorBackground: Int = 0
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
