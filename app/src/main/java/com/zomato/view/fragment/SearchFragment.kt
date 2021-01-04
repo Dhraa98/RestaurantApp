@@ -400,9 +400,9 @@ class SearchFragment : Fragment() {
         super.setMenuVisibility(menuVisible)
         if (menuVisible) {
 
-            if(!colorBackground.equals("")){
+            /*if(!colorBackground.equals("")){
                 binding.tvMainTxt.setTextColor(Color.parseColor(colorBackground))
-            }
+            }*/
             if (isPlaceSelected == 1) {
 
                 adapter.notifyDataSetChanged()
