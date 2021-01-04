@@ -2,12 +2,8 @@ package com.zomato
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.util.Base64
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
@@ -15,12 +11,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.OnPageChangeListener
+import com.google.android.gms.tasks.OnCompleteListener
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
-import com.google.firebase.remoteconfig.ktx.remoteConfig
-import com.google.firebase.remoteconfig.ktx.remoteConfigSettings
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import com.zomato.databinding.ActivityMainBinding
+import com.zomato.utils.BindingAdapter.colorBackground
 import com.zomato.view.fragment.FavouriteFragment
 import com.zomato.view.fragment.SearchFragment
 import com.zomato.view.fragment.adapter.MainPagerAdapter
@@ -40,39 +36,39 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("ResourceType")
     private fun initControls() {
         bindig.lifecycleOwner = this
-        //Enable Debug mode for frequent fetches
-        remoteConfig = Firebase.remoteConfig
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 3600
-        }
 
+        remoteConfig = FirebaseRemoteConfig.getInstance()
+        val configSettings = FirebaseRemoteConfigSettings.Builder()
+            .setMinimumFetchIntervalInSeconds(3600)
+            .build()
         remoteConfig.setConfigSettingsAsync(configSettings)
-        colorBackground = Color.parseColor(remoteConfig.getString(COLOR_CONFIG_KEY))
-        bindig.navigation.setBackgroundColor(colorBackground)
+
+        remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
         remoteConfig.fetchAndActivate()
-            .addOnCompleteListener(this) { task ->
+            .addOnCompleteListener(this, OnCompleteListener<Boolean> { task ->
                 if (task.isSuccessful) {
                     val updated = task.result
-                    remoteConfig.activate();
                     Log.d(TAG, "Config params updated: $updated")
                     Toast.makeText(
-                        this, "Fetch and activate succeeded",
+                        this@MainActivity, "Fetch and activate succeeded",
                         Toast.LENGTH_SHORT
                     ).show()
                 } else {
                     Toast.makeText(
-                        this, "Fetch failed",
+                        this@MainActivity, "Fetch failed",
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+                colorBackground = remoteConfig.getString(COLOR_CONFIG_KEY)
+                bindig.navigation.setBackgroundColor(
+                    Color.parseColor(
+                        remoteConfig.getString(
+                            COLOR_CONFIG_KEY
+                        )
+                    )
+                )
 
-
-
-
-                Toast.makeText(this, remoteConfig.getString(COLOR_CONFIG_KEY), Toast.LENGTH_LONG)
-                    .show()
-                //remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
-            }
+            })
 
         setupViewPager(bindig.mainTabsViewPager)
         bindig.navigation.setOnNavigationItemSelectedListener(
@@ -104,9 +100,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    companion object {
-        var colorBackground: Int = 0
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)

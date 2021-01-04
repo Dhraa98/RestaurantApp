@@ -1,5 +1,7 @@
 package com.zomato.view.fragment
 
+import android.annotation.SuppressLint
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,6 +17,7 @@ import com.zomato.database.TodoEntity
 import com.zomato.database.TodoRoomDatabase
 import com.zomato.databinding.FragmentFavouritesBinding
 import com.zomato.retrofit.RestaurantModel
+import com.zomato.utils.BindingAdapter.colorBackground
 import com.zomato.utils.BindingAdapter.dataList
 import com.zomato.view.fragment.adapter.FavouritesAdapter
 
@@ -34,8 +37,11 @@ class FavouriteFragment : Fragment(), FavouritesAdapter.ProductItemClickListener
 
     }
 
+    @SuppressLint("ResourceAsColor")
     private fun initControls() {
-        binding.tvTxt.setTextColor(MainActivity.colorBackground)
+        if(!colorBackground.equals("")){
+            binding.tvTxt.setTextColor(Color.parseColor(colorBackground))
+        }
         dataList.clear()
         TodoRoomDatabase.getDatabase(activity!!).todoDao().getAll().forEach()
         {
@@ -58,12 +64,7 @@ class FavouriteFragment : Fragment(), FavouritesAdapter.ProductItemClickListener
         dataList.remove(restaurant)
     }
 
-//    override fun setUserVisibleHint(isVisibleToUser: Boolean) {
-//        super.setUserVisibleHint(isVisibleToUser)
-//        if(isVisibleToUser){
-//            initControls()
-//        }
-//    }
+
 
     override fun setMenuVisibility(menuVisible: Boolean) {
         super.setMenuVisibility(menuVisible)

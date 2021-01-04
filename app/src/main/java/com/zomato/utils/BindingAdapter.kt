@@ -9,6 +9,7 @@ import com.zomato.R
 import com.zomato.database.TodoEntity
 
 object BindingAdapter {
+    var colorBackground: String = ""
     var dataList: MutableList<TodoEntity> = mutableListOf()
     var EXTRA_KEY_LAT: String = "EXTRA_KEY_LET"
     var EXTRA_KEY_LNG: String = "EXTRA_KEY_LNG"

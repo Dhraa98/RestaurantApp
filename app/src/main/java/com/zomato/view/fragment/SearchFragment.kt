@@ -3,6 +3,7 @@ package com.zomato.view.fragment
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
@@ -34,6 +35,7 @@ import com.zomato.utils.BindingAdapter.EXTRA_KEY_LAT_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG
 import com.zomato.utils.BindingAdapter.EXTRA_KEY_LNG_MAP
 import com.zomato.utils.BindingAdapter.EXTRA_NAME
+import com.zomato.utils.BindingAdapter.colorBackground
 import com.zomato.utils.BindingAdapter.dataList
 import com.zomato.utils.PermissionUtils
 import com.zomato.view.fragment.adapter.CuisinAdapter
@@ -78,8 +80,11 @@ class SearchFragment : Fragment() {
 
     }
 
+    @SuppressLint("ResourceAsColor")
     private fun initControls() {
-        binding.tvMainTxt.setTextColor(MainActivity.colorBackground)
+        if(!colorBackground.equals("")){
+            binding.tvMainTxt.setTextColor(Color.parseColor(colorBackground))
+        }
         binding.btnSearch.setOnClickListener {
 
             restaurantList = emptyList()
@@ -374,11 +379,8 @@ class SearchFragment : Fragment() {
 
                         }
 
-                        // latTextView.text = location.latitude.toString()
-                        // lngTextView.text = location.longitude.toString()
                     }
-                    // Few more things we can do here:
-                    // For example: Update the location of user on server
+
                 }
             },
             Looper.myLooper()
@@ -386,10 +388,21 @@ class SearchFragment : Fragment() {
         )
     }
 
+    override fun onResume() {
+        super.onResume()
+        if(!colorBackground.equals("")){
+            binding.tvMainTxt.setTextColor(Color.parseColor(colorBackground))
+        }
+    }
+
 
     override fun setMenuVisibility(menuVisible: Boolean) {
         super.setMenuVisibility(menuVisible)
         if (menuVisible) {
+
+            if(!colorBackground.equals("")){
+                binding.tvMainTxt.setTextColor(Color.parseColor(colorBackground))
+            }
             if (isPlaceSelected == 1) {
 
                 adapter.notifyDataSetChanged()
