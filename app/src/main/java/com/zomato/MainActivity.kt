@@ -39,12 +39,38 @@ class MainActivity : AppCompatActivity() {
 
         remoteConfig = FirebaseRemoteConfig.getInstance()
         val configSettings = FirebaseRemoteConfigSettings.Builder()
-            .setMinimumFetchIntervalInSeconds(3600)
+
+            .setMinimumFetchIntervalInSeconds(0)
             .build()
+
         remoteConfig.setConfigSettingsAsync(configSettings)
 
         remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
-        remoteConfig.fetchAndActivate()
+        remoteConfig.fetch(0).addOnCompleteListener() { task ->
+            if (task.isSuccessful) {
+                val updated = task.result
+                remoteConfig.fetchAndActivate()
+                Log.d(TAG, "Config params updated: $updated")
+                Toast.makeText(
+                    this@MainActivity, "Fetch and activate succeeded",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    this@MainActivity, "Fetch failed",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            colorBackground = remoteConfig.getString(COLOR_CONFIG_KEY)
+            bindig.navigation.setBackgroundColor(
+                Color.parseColor(
+                    remoteConfig.getString(
+                        COLOR_CONFIG_KEY
+                    )
+                )
+            )
+        }
+      /*  remoteConfig.fetchAndActivate()
             .addOnCompleteListener(this, OnCompleteListener<Boolean> { task ->
                 if (task.isSuccessful) {
                     val updated = task.result
@@ -68,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                     )
                 )
 
-            })
+            })*/
 
         setupViewPager(bindig.mainTabsViewPager)
         bindig.navigation.setOnNavigationItemSelectedListener(
