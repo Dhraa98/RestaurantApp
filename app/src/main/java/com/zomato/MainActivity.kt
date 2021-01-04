@@ -46,6 +46,18 @@ class MainActivity : AppCompatActivity() {
         remoteConfig.setConfigSettingsAsync(configSettings)
 
         remoteConfig.setDefaultsAsync(R.xml.remote_config_defaults)
+        if(!remoteConfig.getString(COLOR_CONFIG_KEY).equals("")){
+            colorBackground = remoteConfig.getString(COLOR_CONFIG_KEY)
+            bindig.navigation.setBackgroundColor(
+                Color.parseColor(
+                    remoteConfig.getString(
+                        COLOR_CONFIG_KEY
+                    )
+                )
+            )
+        }
+
+
         remoteConfig.fetch(0).addOnCompleteListener() { task ->
             if (task.isSuccessful) {
                 val updated = task.result
